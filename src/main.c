@@ -46,9 +46,11 @@ int main(void) {
 
     while(1) {
         char action[MAX_SIZE];
-        for(int i=0; action[i] != '\n' && i < MAX_SIZE; i++) {
+
+        int i = 0;
+        do {
             uart.read(action + i, 1);
-        }
+        } while(action[i++] != '\n' && i < MAX_SIZE);
 
         if( strncmp(action, "heat\n", 5) ) {
             heat();
