@@ -25,7 +25,7 @@ using namespace sensor;
 #define CALADC12_15V_30C  *((unsigned int *)0x1A1A)
 #define CALADC12_15V_85C  *((unsigned int *)0x1A1C)
 
-int main(void) {
+int send_temp_main(void) {
     WDTCTL = WDTPW | WDTHOLD;
 
     P1DIR |= BIT0;

@@ -13,24 +13,9 @@
 
 #include <msp430.h>
 #include <uart.h>
-#include <string.h>
+#include <timer.h>
 
 #define MAX_SIZE    5
-
-void heat() {
-    P1OUT |= BIT0;
-    P4OUT &= BIT7;
-}
-
-void cool() {
-    P1OUT &= BIT0;
-    P4OUT |= BIT7;
-}
-
-void stop() {
-    P1OUT &= BIT0;
-    P4OUT &= BIT7;
-}
 
 int main(void) {
 
@@ -40,27 +25,33 @@ int main(void) {
 
     //Setup LEDs
     P1DIR |= BIT0;
-    P1OUT &= BIT0;
     P4DIR |= BIT7;
-    P4OUT &= BIT7;
+
+    char action;
+
+    timer_init();
+    timer_start();
 
     while(1) {
-        char action[MAX_SIZE];
 
-        int i = 0;
-        do {
-            uart.read(action + i, 1);
-        } while(action[i++] != '\n' && i < MAX_SIZE);
+        uart.read(&action, 1);
+        uart.write(&action, 1);
 
-        if( strncmp(action, "heat\n", 5) ) {
-            heat();
-        } else if ( strncmp(action, "cool\n", 5) ) {
-            cool();
-        } else if ( strncmp(action, "stop\n", 5) ) {
-            stop();
-        } else {
-            uart.write("ERROR\n", 6);
+        if( action == 'h' ) {
+            P1OUT |= BIT0;
+            P4OUT &= ~BIT7;
         }
+        if ( action == 'c' ) {
+            P1OUT &= ~BIT0;
+            P4OUT |= BIT7;
+        }
+        if ( action == 's' ) {
+            P1OUT &= ~BIT0;
+            P4OUT &= ~BIT7;
+        }
+
+        wait(10);
+
     }
 
 }
