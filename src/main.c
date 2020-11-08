@@ -12,45 +12,57 @@
  */
 
 #include <msp430.h>
-#include <uart.h>
-#include <timer.h>
+#include "printf.h"
+#include "uart.h"
+#include "timer.h"
 
 #define MAX_SIZE    5
 
 int main(void) {
+    WDTCTL = WDTPW | WDTHOLD;
 
-    UART uart;
-    uart_global_config(bps9600);
-    uart_init(&uart);
+    uart_config(bps9600);
+
 
     //Setup LEDs
     P1DIR |= BIT0;
     P4DIR |= BIT7;
 
-    char action;
-
-    timer_init();
-    timer_start();
-
     while(1) {
+        
+        char action = uart_getchar();
+        uart_putchar(action);   //echo for automatic repeat request
 
-        uart.read(&action, 1);
-        uart.write(&action, 1);
-
-        if( action == 'h' ) {
+        if(action == 'h') {
             P1OUT |= BIT0;
             P4OUT &= ~BIT7;
-        }
-        if ( action == 'c' ) {
-            P1OUT &= ~BIT0;
+        } else if (action == 'c') {
             P4OUT |= BIT7;
-        }
-        if ( action == 's' ) {
+            P1OUT &= ~BIT0;
+        } else if (action == 's') { //STOP or ON default
+            P4OUT &= ~BIT7;
+            P1OUT &= ~BIT0;
+        } else if (action == 'o') { //OFF
+            timer_start();
+
             P1OUT &= ~BIT0;
             P4OUT &= ~BIT7;
-        }
 
-        wait(10);
+            int async_stat = 0;
+            do {
+                P1OUT ^= BIT0;
+                P4OUT ^= BIT7;
+                wait(1000);
+
+                action = uart_async_getchar(&async_stat);
+                if(async_stat == 0)
+                    uart_putchar(action);
+            } while(action != 'f');
+
+            P1OUT &= ~BIT0;
+            P4OUT &= ~BIT7;
+
+        }
 
     }
 

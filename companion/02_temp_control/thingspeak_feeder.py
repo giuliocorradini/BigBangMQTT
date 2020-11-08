@@ -32,6 +32,9 @@ class MQTTClient(mqtt.Client):
             self.send_temperature()
 
     def send_temperature(self):
+        '''
+        Note: you will need 01_mqtt_bridge/bridge.py in order to publish measures to MQTT server from MPS430
+        '''
         mean = sum(self.measures[:4]) / 4
         query = { 'api_key' : MQTTClient.api_key, 'field1' : mean }
         r = requests.get(MQTTClient.thingspeak_url, params=query)
